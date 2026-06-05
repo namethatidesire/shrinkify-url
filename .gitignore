@@ -1,0 +1,10 @@
+# misc
+todo
+
+# binaries
+bootstrap
+*.zip
+
+# env files
+.env
+.env.*
