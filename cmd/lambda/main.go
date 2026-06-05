@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -41,16 +42,17 @@ func init() {
 }
 
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	switch req.RouteKey {
-	case "POST /shorten":
+	reqCtxHTTP := req.RequestContext.HTTP
+	switch {
+	case reqCtxHTTP.Method == "POST" && reqCtxHTTP.Path == "/shorten":
 		return handleShorten(ctx, req)
-	default:
-		code := req.PathParameters["code"]
+	case reqCtxHTTP.Method == "GET":
+		code := strings.TrimPrefix(reqCtxHTTP.Path, "/")
 		if code != "" {
 			return handleRedirect(ctx, code)
 		}
-		return response(http.StatusNotFound, "not found"), nil
 	}
+	return response(http.StatusNotFound, "not found"), nil
 }
 
 func handleShorten(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
